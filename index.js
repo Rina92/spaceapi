@@ -1,40 +1,40 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongodb = require ('mongodb');
 const mongoose = require('mongoose');
+// mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[database][?options]]
 
-mongoose.connect('mongodb://localhost/space');
 
-let db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
-    console.log('connected to space database');
+const MongoClient = mongodb.MongoClient;
+const uri = "mongodb+srv://jesrina:qazwsx10@space-xr9xr.mongodb.net/test?retryWrites=true&w=majority";
+const client = new MongoClient(uri, { useNewUrlParser: true });
+client.connect(err => {
+    if (!err) {
+        const collection = client.db("space").collection("test");
+        console.log('successfully connected to space database');
+        // perform actions on the collection object
+        // client.close();
+        // collection.find({}).toArray(function(err, result) {
+        //     if (err) throw err;
+        //     console.log('result:', result);
+        //     db.close();
+        // });
+    }
+  
 });
-
-
 const app = express ();
-app.use(bodyParser.json())
-const Schema = mongoose.Schema;
-const schema = new Schema({
-    launch_year: String,
-    mission_name: String,
-}, { collection : 'test' });
-const Space = mongoose.model('Space', schema);
-
+app.use(bodyParser.json());
 
 app.get ('/', (req,res) =>{
     console.log("get called");
-    Space.find({}, function(err, docs) {
-        if (!err){ 
-            console.log(docs);
-            res.send(docs);
-        } else {throw err;}
+    const collection = client.db("space").collection("test");
+    collection.find({}).toArray(function(err, result) {
+        if (err) throw err;
+        console.log('result:', result);
+        res.send(result);
+        // db.close();
     });
 
 });
 
-
-
-app.listen(1200);
-
-
-
+app.listen(process.env.PORT || 5000);
